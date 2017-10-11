@@ -9,21 +9,24 @@ RUN echo "https://mirrors.ustc.edu.cn/alpine/v3.6/community" >> /etc/apk/reposit
 RUN apk update
 RUN apk add --no-cache bash
 
+RUN NGINX_PATH=/usr/local/nginx \
+	&& mkdir -p ${NGINX_PATH}
+
 RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 	&& CONFIG="\
-		--prefix=/etc/nginx \
-		--sbin-path=/usr/sbin/nginx \
-		--modules-path=/usr/lib/nginx/modules \
-		--conf-path=/etc/nginx/nginx.conf \
-		--error-log-path=/var/log/nginx/error.log \
-		--http-log-path=/var/log/nginx/access.log \
-		--pid-path=/var/run/nginx.pid \
-		--lock-path=/var/run/nginx.lock \
-		--http-client-body-temp-path=/var/cache/nginx/client_temp \
-		--http-proxy-temp-path=/var/cache/nginx/proxy_temp \
-		--http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp \
-		--http-uwsgi-temp-path=/var/cache/nginx/uwsgi_temp \
-		--http-scgi-temp-path=/var/cache/nginx/scgi_temp \
+		--prefix=${NGINX_PATH} \
+		--sbin-path=${NGINX_PATH} \
+		--modules-path=${NGINX_PATH}/modules \
+		--conf-path=${NGINX_PATH}/nginx.conf \
+		--error-log-path=${NGINX_PATH}/error.log \
+		--http-log-path=${NGINX_PATH}/access.log \
+		--pid-path=${NGINX_PATH}/nginx.pid \
+		--lock-path=${NGINX_PATH}/nginx.lock \
+		--http-client-body-temp-path=${NGINX_PATH}/client_temp \
+		--http-proxy-temp-path=${NGINX_PATH}/proxy_temp \
+		--http-fastcgi-temp-path=${NGINX_PATH}/fastcgi_temp \
+		--http-uwsgi-temp-path=${NGINX_PATH}/uwsgi_temp \
+		--http-scgi-temp-path=${NGINX_PATH}/scgi_temp \
 		--user=nginx \
 		--group=nginx \
 		--with-http_ssl_module \
@@ -56,7 +59,7 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 		--with-http_v2_module \
 	" \
 	&& addgroup -S nginx \
-	&& adduser -D -S -h /var/cache/nginx -s /sbin/nologin -G nginx nginx \
+	&& adduser -D -S -h ${NGINX_PATH} -s /sbin/nologin -G nginx nginx \
 	&& apk add --no-cache --virtual .build-deps \
 		gcc \
 		libc-dev \
