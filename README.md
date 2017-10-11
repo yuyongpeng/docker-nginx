@@ -1,0 +1,1 @@
+这个是基于dockerhub的官方nginx修改后
