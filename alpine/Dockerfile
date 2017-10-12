@@ -150,7 +150,7 @@ RUN NGINX_PATH=/usr/local/nginx \
 	&& ln -s $NGINX_PATH/nginx /usr/bin/nginx 
 
 COPY nginx.conf $NGINX_PATH/conf/nginx.conf
-COPY nginx.vh.default.conf $NGINX_PATH/conf.d/default.conf
+COPY nginx.vh.default.conf $NGINX_PATH/conf/conf.d/default.conf
 
 EXPOSE 80
 
