@@ -108,7 +108,7 @@ RUN NGINX_PATH=/usr/local/nginx \
 	&& make -j$(getconf _NPROCESSORS_ONLN) \
 	&& make install \
 	&& rm -rf ${NGINX_VERSION}/html/ \
-	&& mkdir -p $NGINX_PATH/conf.d/ \
+	&& mkdir -p $NGINX_PATH/conf/conf.d/ \
 	&& mkdir -p ${NGINX_VERSION}/html/ \
 	# install 命令用于拷贝文件和设置变量
 	&& install -m644 html/index.html ${NGINX_PATH}/html/ \
