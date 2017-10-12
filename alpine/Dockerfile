@@ -10,7 +10,7 @@ RUN echo "https://mirrors.ustc.edu.cn/alpine/v3.6/community" >> /etc/apk/reposit
 RUN apk update
 RUN apk add --no-cache bash
 
-RUN NGINX_PATH=/usr/local/nginx \
+RUN set -x \
 	&& mkdir -p $NGINX_PATH \
 	&& GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 	&& CONFIG="\
