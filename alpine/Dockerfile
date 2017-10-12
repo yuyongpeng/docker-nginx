@@ -94,6 +94,8 @@ RUN NGINX_PATH=/usr/local/nginx \
 	&& rm nginx.tar.gz \
 	&& cd /usr/src/nginx-$NGINX_VERSION \
 	&& ./configure $CONFIG --with-debug \
+	# 获取CPU的核数
+	# 允许一次运行的job数量
 	&& make -j$(getconf _NPROCESSORS_ONLN) \
 	&& mv objs/nginx objs/nginx-debug \
 	&& mv objs/ngx_http_xslt_filter_module.so objs/ngx_http_xslt_filter_module-debug.so \
@@ -101,21 +103,24 @@ RUN NGINX_PATH=/usr/local/nginx \
 	&& mv objs/ngx_http_geoip_module.so objs/ngx_http_geoip_module-debug.so \
 	&& mv objs/ngx_stream_geoip_module.so objs/ngx_stream_geoip_module-debug.so \
 	&& ./configure $CONFIG \
+	# 获取CPU的核数
+	# 允许一次运行的job数量
 	&& make -j$(getconf _NPROCESSORS_ONLN) \
 	&& make install \
-	&& rm -rf /etc/nginx/html/ \
+	&& rm -rf ${NGINX_VERSION}/html/ \
 	&& mkdir -p $NGINX_PATH/conf.d/ \
-	&& mkdir -p /usr/share/nginx/html/ \
-	&& install -m644 html/index.html /usr/share/nginx/html/ \
-	&& install -m644 html/50x.html /usr/share/nginx/html/ \
-	&& install -m755 objs/nginx-debug /usr/sbin/nginx-debug \
-	&& install -m755 objs/ngx_http_xslt_filter_module-debug.so /usr/lib/nginx/modules/ngx_http_xslt_filter_module-debug.so \
-	&& install -m755 objs/ngx_http_image_filter_module-debug.so /usr/lib/nginx/modules/ngx_http_image_filter_module-debug.so \
-	&& install -m755 objs/ngx_http_geoip_module-debug.so /usr/lib/nginx/modules/ngx_http_geoip_module-debug.so \
-	&& install -m755 objs/ngx_stream_geoip_module-debug.so /usr/lib/nginx/modules/ngx_stream_geoip_module-debug.so \
-	&& ln -s ../../usr/lib/nginx/modules $NGINX_PATH/modules \
+	&& mkdir -p ${NGINX_VERSION}/html/ \
+	# install 命令用于拷贝文件和设置变量
+	&& install -m644 html/index.html ${NGINX_PATH}/html/ \
+	&& install -m644 html/50x.html ${NGINX_PATH}/html/ \
+	&& install -m755 objs/nginx-debug ${NGINX_PATH}/nginx-debug \
+	&& install -m755 objs/ngx_http_xslt_filter_module-debug.so ${NGINX_PATH}/modules/ngx_http_xslt_filter_module-debug.so \
+	&& install -m755 objs/ngx_http_image_filter_module-debug.so ${NGINX_PATH}/modules/ngx_http_image_filter_module-debug.so \
+	&& install -m755 objs/ngx_http_geoip_module-debug.so ${NGINX_PATH}/modules/ngx_http_geoip_module-debug.so \
+	&& install -m755 objs/ngx_stream_geoip_module-debug.so ${NGINX_PATH}/modules/ngx_stream_geoip_module-debug.so \
+	# && ln -s ../../usr/lib/nginx/modules $NGINX_PATH/modules \
 	&& strip $NGINX_PATH/sbin/nginx* \
-	&& strip /usr/lib/nginx/modules/*.so \
+	&& strip $NGINX_PATH/modules/*.so \
 	&& rm -rf /usr/src/nginx-$NGINX_VERSION \
 	\
 	# Bring in gettext so we can get `envsubst`, then throw
@@ -125,8 +130,10 @@ RUN NGINX_PATH=/usr/local/nginx \
 	&& apk add --no-cache --virtual .gettext gettext \
 	&& mv /usr/bin/envsubst /tmp/ \
 	\
+	# 安装nginx的依赖包
+	# scanelf 用户获得so文件所依赖的包，然后在解析字符串后，安装这些包
 	&& runDeps="$( \
-		scanelf --needed --nobanner --format '%n#p' /usr/sbin/nginx /usr/lib/nginx/modules/*.so /tmp/envsubst \
+		scanelf --needed --nobanner --format '%n#p' ${NGINX_PATH}/nginx ${NGINX_PATH}/modules/*.so /tmp/envsubst \
 			| tr ',' '\n' \
 			| sort -u \
 			| awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
