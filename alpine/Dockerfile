@@ -119,7 +119,8 @@ RUN NGINX_PATH=/usr/local/nginx \
 	&& install -m755 objs/ngx_http_geoip_module-debug.so ${NGINX_PATH}/modules/ngx_http_geoip_module-debug.so \
 	&& install -m755 objs/ngx_stream_geoip_module-debug.so ${NGINX_PATH}/modules/ngx_stream_geoip_module-debug.so \
 	# && ln -s ../../usr/lib/nginx/modules $NGINX_PATH/modules \
-	&& strip $NGINX_PATH/sbin/nginx* \
+	&& strip $NGINX_PATH/nginx \
+	&& strip $NGINX_PATH/nginx-debug \
 	&& strip $NGINX_PATH/modules/*.so \
 	&& rm -rf /usr/src/nginx-$NGINX_VERSION \
 	\
@@ -154,4 +155,4 @@ EXPOSE 80
 
 STOPSIGNAL SIGTERM
 
-CMD ["/usr/local/nginx/sbin/nginx", "-g", "daemon off;"]
+CMD ["${NGINX_PATH}/nginx", "-g", "daemon off;"]
