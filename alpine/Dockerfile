@@ -17,7 +17,7 @@ RUN NGINX_PATH=/usr/local/nginx \
 		--prefix=$NGINX_PATH \
 		--sbin-path=${NGINX_PATH} \
 		--modules-path=${NGINX_PATH}/modules \
-		--conf-path=${NGINX_PATH}/nginx.conf \
+		--conf-path=${NGINX_PATH}/conf/nginx.conf \
 		--error-log-path=${NGINX_PATH}/error.log \
 		--http-log-path=${NGINX_PATH}/access.log \
 		--pid-path=${NGINX_PATH}/nginx.pid \
@@ -146,13 +146,14 @@ RUN NGINX_PATH=/usr/local/nginx \
 	\
 	# forward request and error logs to docker log collector
 	&& ln -sf /dev/stdout $NGINX_PATH/access.log \
-	&& ln -sf /dev/stderr $NGINX_PATH/error.log
+	&& ln -sf /dev/stderr $NGINX_PATH/error.log \
+	&& ln -s $NGINX_PATH/nginx /usr/bin/nginx 
 
-COPY nginx.conf $NGINX_PATH/nginx.conf
+COPY nginx.conf $NGINX_PATH/conf/nginx.conf
 COPY nginx.vh.default.conf $NGINX_PATH/conf.d/default.conf
 
 EXPOSE 80
 
 STOPSIGNAL SIGTERM
 
-CMD ["${NGINX_PATH}/nginx", "-g", "daemon off;"]
+CMD ["nginx", "-g", "daemon off;"]
