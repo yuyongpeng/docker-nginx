@@ -3,6 +3,7 @@ FROM alpine:3.5
 LABEL maintainer="NGINX Docker Maintainers <docker-maint@nginx.com>"
 
 ENV NGINX_VERSION 1.12.1
+ENV NGINX_PATH /usr/local/nginx
 
 RUN echo "https://mirrors.ustc.edu.cn/alpine/v3.6/main" > /etc/apk/repositories
 RUN echo "https://mirrors.ustc.edu.cn/alpine/v3.6/community" >> /etc/apk/repositories
@@ -10,11 +11,10 @@ RUN apk update
 RUN apk add --no-cache bash
 
 RUN NGINX_PATH=/usr/local/nginx \
-	&& mkdir -p ${NGINX_PATH}
-
-RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
+	&& mkdir -p $NGINX_PATH \
+	&& GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 	&& CONFIG="\
-		--prefix=${NGINX_PATH} \
+		--prefix=$NGINX_PATH \
 		--sbin-path=${NGINX_PATH} \
 		--modules-path=${NGINX_PATH}/modules \
 		--conf-path=${NGINX_PATH}/nginx.conf \
@@ -104,7 +104,7 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 	&& make -j$(getconf _NPROCESSORS_ONLN) \
 	&& make install \
 	&& rm -rf /etc/nginx/html/ \
-	&& mkdir /etc/nginx/conf.d/ \
+	&& mkdir -p $NGINX_PATH/conf.d/ \
 	&& mkdir -p /usr/share/nginx/html/ \
 	&& install -m644 html/index.html /usr/share/nginx/html/ \
 	&& install -m644 html/50x.html /usr/share/nginx/html/ \
@@ -113,8 +113,8 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 	&& install -m755 objs/ngx_http_image_filter_module-debug.so /usr/lib/nginx/modules/ngx_http_image_filter_module-debug.so \
 	&& install -m755 objs/ngx_http_geoip_module-debug.so /usr/lib/nginx/modules/ngx_http_geoip_module-debug.so \
 	&& install -m755 objs/ngx_stream_geoip_module-debug.so /usr/lib/nginx/modules/ngx_stream_geoip_module-debug.so \
-	&& ln -s ../../usr/lib/nginx/modules /etc/nginx/modules \
-	&& strip /usr/sbin/nginx* \
+	&& ln -s ../../usr/lib/nginx/modules $NGINX_PATH/modules \
+	&& strip $NGINX_PATH/sbin/nginx* \
 	&& strip /usr/lib/nginx/modules/*.so \
 	&& rm -rf /usr/src/nginx-$NGINX_VERSION \
 	\
@@ -137,14 +137,14 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 	&& mv /tmp/envsubst /usr/local/bin/ \
 	\
 	# forward request and error logs to docker log collector
-	&& ln -sf /dev/stdout /var/log/nginx/access.log \
-	&& ln -sf /dev/stderr /var/log/nginx/error.log
+	&& ln -sf /dev/stdout $NGINX_PATH/access.log \
+	&& ln -sf /dev/stderr $NGINX_PATH/error.log
 
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY nginx.vh.default.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf $NGINX_PATH/nginx.conf
+COPY nginx.vh.default.conf $NGINX_PATH/conf.d/default.conf
 
 EXPOSE 80
 
 STOPSIGNAL SIGTERM
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["/usr/local/nginx/sbin/nginx", "-g", "daemon off;"]
